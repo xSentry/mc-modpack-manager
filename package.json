@@ -1,0 +1,21 @@
+{
+  "name": "mc-modpack-manager",
+  "version": "1.0.0",
+  "description": "UI to configurate and update a git repo for minecraft mod managing",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Markus Block",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^33.2.0",
+    "electron-log": "^5.2.2",
+    "simple-git": "^3.27.0"
+  },
+  "devDependencies": {
+    "electron-packager": "^17.1.2",
+    "prettier": "^3.3.3"
+  }
+}

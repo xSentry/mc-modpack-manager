@@ -1,0 +1,207 @@
+/* CSS Variables for Dark Mode */
+:root {
+    --color-background: #121212;
+    --color-container: #1e1e1e;
+    --color-border: #333333;
+    --color-text-primary: #e0e0e0;
+    --color-text-secondary: #bdbdbd;
+    --color-highlight: #3a7c3d;
+    --color-highlight-hover: #4da351;
+    --color-output-background: #2b2b2b;
+}
+
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body and Container */
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Title Bar */
+.title-bar {
+    position: absolute;
+    top: 0;
+    width: 100dvw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--color-container); /* Match dark mode container */
+    color: var(--color-text-primary); /* Light text */
+    padding: 10px;
+    height: 40px;
+    -webkit-app-region: drag; /* Make the title bar draggable */
+}
+
+/* Title */
+.title-bar .title {
+    font-size: 1rem;
+    font-weight: bold;
+    -webkit-app-region: no-drag; /* Prevent drag on the title text */
+}
+
+/* Window Controls */
+.window-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 1.2rem;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    -webkit-app-region: no-drag; /* Prevent drag on the buttons */
+}
+
+.control-btn:hover {
+    background-color: #333333; /* Slightly lighter for hover effect */
+}
+
+.control-btn:active {
+    background-color: var(--color-highlight); /* Green for active button */
+}
+
+.container {
+    background: var(--color-container);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    width: 90%;
+    max-width: 600px;
+    padding: 20px;
+}
+
+/* Header */
+.header {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    color: var(--color-highlight);
+    font-weight: bold;
+}
+
+/* Sections */
+.section {
+    margin-bottom: 20px;
+}
+
+.label {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: block;
+    color: var(--color-text-secondary);
+}
+
+/* Buttons */
+.button {
+    background: var(--color-highlight);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background: var(--color-highlight-hover);
+}
+
+.button.primary {
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Folder Path */
+.folder-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.folder-path {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+.folder-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--color-text-primary);
+    margin-bottom: 20px;
+}
+
+/* Dropdown */
+.dropdown {
+    margin-top: 10px;
+}
+
+.select {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-container);
+    color: var(--color-text-primary);
+}
+
+.select option {
+    background: var(--color-container);
+    color: var(--color-text-primary);
+}
+
+/* Output Section */
+.output {
+    background: var(--color-output-background);
+    color: var(--color-text-primary);
+    font-family: monospace;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid var(--color-border);
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+/* Scrollbar Styling */
+.output::-webkit-scrollbar {
+    width: 8px;
+}
+
+.output::-webkit-scrollbar-thumb {
+    background: var(--color-highlight);
+    border-radius: 4px;
+}
+
+.output::-webkit-scrollbar-thumb:hover {
+    background: var(--color-highlight-hover);
+}

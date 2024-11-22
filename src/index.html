@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Modpack Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="title-bar">
+    <div class="title">Minecraft Modpack Manager</div>
+    <div class="window-controls">
+        <button id="minimize-btn" class="control-btn">−</button>
+        <button id="maximize-btn" class="control-btn">□</button>
+        <button id="close-btn" class="control-btn">×</button>
+    </div>
+</div>
+
+<main class="container">
+    <section class="section">
+        <label class="label">Mod Folder:</label>
+        <div class="folder-selector">
+            <button id="select-folder-btn" class="button">Select Minecraft Folder</button>
+            <span id="folder-path" class="folder-path">No folder selected</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <label for="branch-select" class="label">Select Modpack:</label>
+        <div class="dropdown">
+            <select id="branch-select" class="select">
+                <option>Loading modpacks...</option>
+            </select>
+        </div>
+    </section>
+
+    <section class="section">
+        <button id="action-btn" class="button primary">Initialize Manager</button>
+    </section>
+
+    <section class="section">
+        <div class="folder-stats">
+            <span id="mods-count">Mods: 0</span>
+            <span id="resourcepacks-count">Resourcepacks: 0</span>
+        </div>
+        
+        <pre id="output" class="output"></pre>
+    </section>
+</main>
+
+<script src="renderer.js"></script>
+</body>
+</html>
