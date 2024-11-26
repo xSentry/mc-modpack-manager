@@ -1,6 +1,6 @@
 {
   "name": "mc-modpack-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "UI to configurate and update a git repo for minecraft mod managing",
   "main": "src/main.js",
   "scripts": {
