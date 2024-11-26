@@ -2,6 +2,8 @@ const repoUrl = "https://github.com/xSentry/minecraft-modpacks";
 let folderPath = "";
 let repoStatus = "not-cloned";
 
+showLoadingOverlay();
+
 document.addEventListener("DOMContentLoaded", async () => {
   await initializeApp();
 });
@@ -21,6 +23,8 @@ async function initializeApp() {
 
   await checkModInstallerVisibility();
   setupEventListeners();
+
+  hideLoadingOverlay();
 }
 
 async function checkModInstallerVisibility() {
@@ -39,32 +43,45 @@ function setupEventListeners() {
   document
     .getElementById("select-folder-btn")
     .addEventListener("click", async () => {
+      showLoadingOverlay();
       await handleFolderSelection();
+      hideLoadingOverlay();
     });
 
   document.getElementById("action-btn").addEventListener("click", async () => {
+    showLoadingOverlay();
     await handleActionButton();
+    hideLoadingOverlay();
   });
 
   document.getElementById("branch-select").addEventListener("change", () => {
+    showLoadingOverlay();
     document.getElementById("action-btn").innerText = "Load Modpack";
+    hideLoadingOverlay();
   });
 
   document.getElementById("minimize-btn").addEventListener("click", () => {
+    showLoadingOverlay();
     window.api.windowControls.minimize();
+    hideLoadingOverlay();
   });
 
   document.getElementById("maximize-btn").addEventListener("click", () => {
+    showLoadingOverlay();
     window.api.windowControls.maximize();
+    hideLoadingOverlay();
   });
 
   document.getElementById("close-btn").addEventListener("click", () => {
+    showLoadingOverlay();
     window.api.windowControls.close();
+    hideLoadingOverlay();
   });
 
   document
     .getElementById("set-java-args-btn")
     .addEventListener("click", async () => {
+      showLoadingOverlay();
       const result = await window.api.setJavaArgs();
 
       const output = document.getElementById("output");
@@ -73,6 +90,7 @@ function setupEventListeners() {
       } else {
         output.innerText = `Failed to set JVM arguments: ${result.message}`;
       }
+      hideLoadingOverlay();
     });
 
   document
@@ -175,4 +193,16 @@ async function updateFolderCounts(folderPath) {
   document.getElementById("mods-count").innerText = `Mods: ${modsCount}`;
   document.getElementById("resourcepacks-count").innerText =
     `Resourcepacks: ${resourcepacksCount}`;
+}
+
+function showLoadingOverlay(message = "Loading, please wait...") {
+  const overlay = document.getElementById("loading-overlay");
+  const messageElement = overlay.querySelector("p");
+  messageElement.innerText = message;
+  overlay.style.display = "flex";
+}
+
+function hideLoadingOverlay() {
+  const overlay = document.getElementById("loading-overlay");
+  overlay.style.display = "none";
 }
