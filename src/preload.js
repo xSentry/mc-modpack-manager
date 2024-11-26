@@ -14,6 +14,11 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.invoke("checkout-branch", folderPath, branch),
   getFolderCounts: async (folderPath) =>
     ipcRenderer.invoke("get-folder-counts", folderPath),
+  setJavaArgs: async () => ipcRenderer.invoke("set-java-args"),
+  checkModInstallerVisibility: async (folderPath) =>
+    ipcRenderer.invoke("check-mod-installer-visibility"),
+  runModInstaller: async (folderPath) =>
+    ipcRenderer.invoke("run-mod-installer"),
   windowControls: {
     minimize: () => ipcRenderer.send("window-control", "minimize"),
     maximize: () => ipcRenderer.send("window-control", "maximize"),

@@ -1,8 +1,10 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 const simpleGit = require("simple-git");
 const log = require("electron-log");
+const { exec, spawn } = require("child_process");
 
 log.initialize();
 log.info("Main process started.");
@@ -142,13 +144,14 @@ ipcMain.handle("checkout-branch", async (_, folderPath, branch) => {
 
 ipcMain.handle("git-clone", async (_, repoUrl, folderPath) => {
   try {
-    const git = simpleGit();
-    await git.clone(repoUrl, folderPath, ["-b", "master"]);
+    const git = getGitInstance(folderPath);
 
-    const repoGit = getGitInstance(folderPath);
-    await repoGit.fetch(["--all"]);
+    await git.init();
+    await git.addRemote("origin", repoUrl);
+    await git.fetch(["--all"]);
+    await git.checkout("master");
 
-    log.info("Fetched branches after cloning:", (await repoGit.branch()).all);
+    log.info("Fetched branches after cloning:", (await git.branch()).all);
 
     return "Manager initialized successfully!";
   } catch (error) {
@@ -235,5 +238,208 @@ ipcMain.handle("get-folder-counts", async (_, folderPath) => {
   } catch (error) {
     log.error("Error counting folder contents:", error);
     return { modsCount: 0, resourcepacksCount: 0 };
+  }
+});
+
+ipcMain.handle("set-java-args", async () => {
+  try {
+    const settings = readSettings();
+    const folderPath = settings.selectedFolder || undefined;
+
+    if (!folderPath || folderPath === "") {
+      return;
+    }
+
+    const profilesFilePath = path.join(folderPath, "launcher_profiles.json");
+
+    if (!fs.existsSync(profilesFilePath)) {
+      throw new Error("launcher_profiles.json not found.");
+    }
+
+    const profilesData = JSON.parse(fs.readFileSync(profilesFilePath, "utf-8"));
+
+    const totalRam = os.totalmem(); // Total RAM in bytes
+    const ram80Percent = Math.floor((totalRam * 0.8) / 1024 ** 3); // Convert to GB
+
+    const jvmArgs = [
+      `-Xmx${ram80Percent}G`,
+      "-XX:+UnlockExperimentalVMOptions",
+      "-XX:+UseG1GC",
+      "-XX:G1NewSizePercent=20",
+      "-XX:G1ReservePercent=20",
+      "-XX:MaxGCPauseMillis=50",
+      "-XX:G1HeapRegionSize=32M",
+    ].join(" ");
+
+    let profileCount = 0;
+
+    if (profilesData.profiles) {
+      for (const profileKey in profilesData.profiles) {
+        const profile = profilesData.profiles[profileKey];
+
+        if (profile.name === "") {
+          continue;
+        }
+
+        if (profile.javaArgs !== undefined) {
+          profile.javaArgs = jvmArgs; // Update Java arguments
+        } else {
+          profile["javaArgs"] = jvmArgs; // Add Java arguments if not present
+        }
+
+        profileCount++;
+      }
+    } else {
+      throw new Error("No profiles found in launcher_profiles.json.");
+    }
+
+    if (profileCount === 0) {
+      throw new Error("No mod profiles found. Install a mod profile first.");
+    }
+
+    // Write back to launcher_profiles.json
+    fs.writeFileSync(
+      profilesFilePath,
+      JSON.stringify(profilesData, null, 2),
+      "utf-8",
+    );
+
+    return {
+      success: true,
+      message: `Updated JVM arguments for ${profileCount} profile(s) in launcher_profiles.json to: \n ${jvmArgs}`,
+    };
+  } catch (error) {
+    console.error("Error updating JVM arguments:", error.message);
+
+    return {
+      success: false,
+      message: `Error: ${error.message}`,
+    };
+  }
+});
+
+ipcMain.handle("check-mod-installer-visibility", async (_) => {
+  const settings = readSettings();
+  const folderPath = settings.selectedFolder || undefined;
+
+  if (!folderPath || folderPath === "") {
+    return;
+  }
+
+  try {
+    const isJavaAvailable = await new Promise((resolve) => {
+      exec("java -version", (error) => resolve(!error));
+    });
+
+    if (!isJavaAvailable) {
+      return {
+        visible: false,
+        reason: "Java is not installed or not available in PATH.",
+      };
+    }
+
+    const profilesFilePath = path.join(folderPath, "launcher_profiles.json");
+
+    if (!fs.existsSync(profilesFilePath)) {
+      return {
+        visible: false,
+        reason: "launcher_profiles.json not found.",
+      };
+    }
+
+    const profilesData = JSON.parse(fs.readFileSync(profilesFilePath, "utf-8"));
+    const profiles = profilesData?.profiles
+      ? Object.values(profilesData.profiles)
+      : [];
+
+    const installerPath = path.join(folderPath, "forgeinstaller");
+
+    if (!fs.existsSync(installerPath)) {
+      return {
+        visible: false,
+        reason: "forgeinstaller folder not found.",
+      };
+    }
+
+    // Find the first .jar file in the folder
+    const jarFile = fs
+      .readdirSync(installerPath)
+      .find((file) => file.endsWith(".jar"));
+
+    if (!jarFile) {
+      return {
+        visible: false,
+        reason: "No .jar file found in the forgeinstaller folder.",
+      };
+    }
+
+    // Check if any profile has a lastVersionId that is a substring of the jar file
+    const matchingProfile = profiles.find((profile) =>
+      jarFile.includes(profile.lastVersionId),
+    );
+
+    if (matchingProfile) {
+      return {
+        visible: false,
+        reason: `Installer matches the current version (${matchingProfile.lastVersionId}). No installation needed.`,
+      };
+    }
+
+    return {
+      visible: true,
+      reason:
+        "Installer found and is not already installed. Ready for installation.",
+    };
+  } catch (error) {
+    console.error("Error checking mod installer visibility:", error.message);
+    return {
+      visible: false,
+      reason: `Error: ${error.message}`,
+    };
+  }
+});
+
+ipcMain.handle("run-mod-installer", async (_) => {
+  const settings = readSettings();
+  const folderPath = settings.selectedFolder || undefined;
+
+  if (!folderPath || folderPath === "") {
+    return;
+  }
+
+  try {
+    const installerPath = path.join(folderPath, "forgeinstaller");
+
+    const jarFile = fs
+      .readdirSync(installerPath)
+      .find((file) => file.endsWith(".jar"));
+
+    if (!jarFile) {
+      throw new Error("No .jar file found in the forgeinstaller folder.");
+    }
+
+    const jarFilePath = path.join(installerPath, jarFile);
+
+    const javaProcess = spawn("java", ["-jar", jarFilePath], {
+      cwd: installerPath,
+      stdio: "inherit",
+    });
+
+    return new Promise((resolve, reject) => {
+      javaProcess.on("close", (code) => {
+        if (code === 0) {
+          resolve("Mod client installed successfully.");
+        } else {
+          reject(new Error(`Installation failed with exit code ${code}.`));
+        }
+      });
+
+      javaProcess.on("error", (error) => {
+        reject(error);
+      });
+    });
+  } catch (error) {
+    console.error("Error running mod installer:", error.message);
+    return `Error: ${error.message}`;
   }
 });

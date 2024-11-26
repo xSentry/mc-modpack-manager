@@ -19,20 +19,20 @@ async function initializeApp() {
     folderPathDisplay.innerText = "No folder selected";
   }
 
-  await populateBranchDropdown(await window.api.fetchBranches(repoUrl));
+  await checkModInstallerVisibility();
   setupEventListeners();
+}
 
-  document.getElementById("minimize-btn").addEventListener("click", () => {
-    window.api.windowControls.minimize();
-  });
+async function checkModInstallerVisibility() {
+  const visibilityResult = await window.api.checkModInstallerVisibility();
 
-  document.getElementById("maximize-btn").addEventListener("click", () => {
-    window.api.windowControls.maximize();
-  });
+  const installButton = document.getElementById("install-mod-client-btn");
 
-  document.getElementById("close-btn").addEventListener("click", () => {
-    window.api.windowControls.close();
-  });
+  if (visibilityResult.visible) {
+    installButton.style.display = "block";
+  } else {
+    installButton.style.display = "none";
+  }
 }
 
 function setupEventListeners() {
@@ -49,6 +49,44 @@ function setupEventListeners() {
   document.getElementById("branch-select").addEventListener("change", () => {
     document.getElementById("action-btn").innerText = "Load Modpack";
   });
+
+  document.getElementById("minimize-btn").addEventListener("click", () => {
+    window.api.windowControls.minimize();
+  });
+
+  document.getElementById("maximize-btn").addEventListener("click", () => {
+    window.api.windowControls.maximize();
+  });
+
+  document.getElementById("close-btn").addEventListener("click", () => {
+    window.api.windowControls.close();
+  });
+
+  document
+    .getElementById("set-java-args-btn")
+    .addEventListener("click", async () => {
+      const result = await window.api.setJavaArgs();
+
+      const output = document.getElementById("output");
+      if (result.success) {
+        output.innerText = result.message;
+      } else {
+        output.innerText = `Failed to set JVM arguments: ${result.message}`;
+      }
+    });
+
+  document
+    .getElementById("install-mod-client-btn")
+    .addEventListener("click", async () => {
+      const output = document.getElementById("output");
+
+      try {
+        const result = await window.api.runModInstaller();
+        output.innerText = result;
+      } catch (error) {
+        output.innerText = `Error installing mod client: ${error.message}`;
+      }
+    });
 }
 
 async function handleFolderSelection() {
