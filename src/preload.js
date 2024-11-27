@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.invoke("check-mod-installer-visibility"),
   runModInstaller: async (folderPath) =>
     ipcRenderer.invoke("run-mod-installer"),
+  checkGit: async () => ipcRenderer.invoke("check-git"),
+  installGit: async () => ipcRenderer.invoke("install-git"),
   windowControls: {
     minimize: () => ipcRenderer.send("window-control", "minimize"),
     maximize: () => ipcRenderer.send("window-control", "maximize"),

@@ -5,6 +5,14 @@ let repoStatus = "not-cloned";
 showLoadingOverlay();
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const gitStatus = await window.api.checkGit();
+
+  if (!gitStatus.installed) {
+    showLoadingOverlay("Installing Git! Please wait...");
+    await window.api.installGit();
+    showLoadingOverlay();
+  }
+
   await initializeApp();
 });
 
@@ -13,15 +21,14 @@ async function initializeApp() {
   folderPath = savedSettings.folderPath || "";
   const folderPathDisplay = document.getElementById("folder-path");
 
-  if (folderPath) {
+  if (folderPath && folderPath !== "") {
     folderPathDisplay.innerText = folderPath;
     await checkRepoStatus(folderPath);
     await updateFolderCounts(folderPath);
+    await checkModInstallerVisibility();
   } else {
     folderPathDisplay.innerText = "No folder selected";
   }
-
-  await checkModInstallerVisibility();
   setupEventListeners();
 
   hideLoadingOverlay();
@@ -45,6 +52,7 @@ function setupEventListeners() {
     .addEventListener("click", async () => {
       showLoadingOverlay();
       await handleFolderSelection();
+      await checkModInstallerVisibility();
       hideLoadingOverlay();
     });
 
